@@ -1,0 +1,23 @@
+
+FROM php:7.1-apache
+
+
+RUN cd /etc/apache2/mods-enabled && \
+    ln -s ../mods-available/rewrite.load
+
+ENV  http_proxy http://10.0.2.4:3128/
+ENV  https_proxy https://10.0.2.4:3128/
+
+RUN apt-get update && \
+    apt-get install -y libfreetype6-dev && \
+    docker-php-ext-configure gd --with-freetype-dir=/usr/include/ && \
+    docker-php-ext-install -j$(nproc) gd
+
+RUN docker-php-ext-install -j$(nproc) mysqli pdo_mysql
+
+
+COPY 000-default.conf /etc/apache2/sites-available/
+COPY basic /var/www/html
+
+RUN chgrp www-data /var/www/html/web/assets
+RUN chmod g+w /var/www/html/web/assets
